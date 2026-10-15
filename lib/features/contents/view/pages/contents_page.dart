@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/add_content_sheet.dart';
+
 class ContentsPage extends StatelessWidget {
   const ContentsPage({super.key});
 
@@ -10,8 +12,12 @@ class ContentsPage extends StatelessWidget {
       body: const Center(child: Text('Aucun contenu pour le moment')),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // On ajoutera ici l’ouverture du menu :
-          // texte, photo, vocal ou fichier.
+          showModalBottomSheet<void>(
+            context: context,
+            showDragHandle: true,
+            isScrollControlled: true,
+            builder: (context) => const AddContentSheet(),
+          );
         },
         tooltip: 'Ajouter un contenu',
         child: const Icon(Icons.add),
