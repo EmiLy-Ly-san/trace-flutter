@@ -58,6 +58,35 @@ class AppTheme {
       bodyLarge: TextStyle(fontSize: 16, color: AppColors.textPrimary),
       bodyMedium: TextStyle(fontSize: 14, color: AppColors.textSecondary),
     ),
+    // Style commun des champs de saisie.
+    inputDecorationTheme: InputDecorationTheme(
+      // Fond gris clair à l’intérieur des champs.
+      filled: true,
+      fillColor: AppColors.surface,
+
+      // Espace entre le texte et les bords du champ.
+      contentPadding: const EdgeInsets.all(16),
+
+      hintStyle: const TextStyle(fontSize: 16, color: AppColors.textSecondary),
+
+      // Forme par défaut des champs INPUT
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+
+      // Champ qui n’est pas sélectionné : sans contour visible
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+
+      // Champ sélectionné : contour violet
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.primary, width: 2),
+      ),
+    ),
 
     // Apparence du bouton flottant « + »
     floatingActionButtonTheme: const FloatingActionButtonThemeData(

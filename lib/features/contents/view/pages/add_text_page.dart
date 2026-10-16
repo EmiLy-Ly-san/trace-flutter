@@ -10,25 +10,24 @@ class AddTextPage extends StatelessWidget {
       appBar: AppBar(title: const Text('Écrire un texte')),
 
       // Ajoute une marge autour des champs
-      body: const Padding(
-        padding: EdgeInsets.all(16),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             // Champ de saisie du titre
             TextField(
+              style: Theme.of(context).textTheme.titleLarge,
               textCapitalization: TextCapitalization.sentences,
-              decoration: InputDecoration(
-                hintText: 'Titre',
-                border: OutlineInputBorder(),
-              ),
+              decoration: const InputDecoration(hintText: 'Titre'),
             ),
 
             // Espace entre les deux champs
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
 
             // Le champ de texte occupe la hauteur restante
             Expanded(
               child: TextField(
+                style: Theme.of(context).textTheme.bodyLarge,
                 textCapitalization: TextCapitalization.sentences,
                 keyboardType: TextInputType.multiline,
 
@@ -38,10 +37,7 @@ class AddTextPage extends StatelessWidget {
 
                 // Place le texte en haut du champ
                 textAlignVertical: TextAlignVertical.top,
-                decoration: InputDecoration(
-                  hintText: 'Écris ici…',
-                  border: OutlineInputBorder(),
-                ),
+                decoration: const InputDecoration(hintText: 'Écris ici…'),
               ),
             ),
           ],
