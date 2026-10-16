@@ -16,8 +16,7 @@ class ContentsPage extends StatelessWidget {
 
       // Liste temporaire pour construire l’interface avant la BDD.
       body: ListView(
-        // Permet le défilement sans étirer le contenu aux extrémités.
-        physics: const ClampingScrollPhysics(),
+        physics: const ClampingScrollPhysics(), // pas de rebond au définlemenr
         padding: const EdgeInsets.all(16),
         children: const [
           ContentCard(
@@ -31,11 +30,9 @@ class ContentsPage extends StatelessWidget {
           SizedBox(height: 16),
 
           ContentCard(
-            title: 'À aborder pendant la séance',
+            title: 'Une photo à partager',
             date: '15 octobre 2026',
-            preview:
-                'J’aimerais revenir sur ce moment et sur les émotions '
-                'que j’ai ressenties.',
+            imagePath: 'assets/images/TURBOPRUNE-banniere-fb.jpg',
             isShared: true,
           ),
 

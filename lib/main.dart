@@ -12,10 +12,15 @@ class TraceApp extends StatelessWidget {
   const TraceApp({super.key});
 
   @override
-  Widget build(BuildContext context) { // build décrit l’interface à afficher
+  Widget build(BuildContext context) {
+    // build décrit l’interface à afficher
     return MaterialApp(
-      debugShowCheckedModeBanner: false,  // Masque le bandeau « DEBUG »
+      debugShowCheckedModeBanner: false, // Masque le bandeau « DEBUG »
       theme: AppTheme.light, //Applique mon theme
+      scrollBehavior: const MaterialScrollBehavior().copyWith(
+        // Désactive les effets visuels aux extrémités des listes
+        overscroll: false,
+      ),
       home: const ContentsPage(), //écran d’accueil
     );
   }
