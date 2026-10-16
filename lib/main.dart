@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'app/theme/app_theme.dart';
 import 'app/router/app_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
-  runApp(const TraceApp()); // Lance Flutter avec TraceApp comme widget racine
+  // ProviderScope -> Riverpod sur tout l'app
+  runApp(const ProviderScope(child: TraceApp()));
 }
 
 //StatelessWidget : ce widget ne gère pas d’état mutable/
