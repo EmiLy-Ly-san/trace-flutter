@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../pages/add_text_page.dart';
 
 // Panneau proposant les différents formats de contenu
 class AddContentSheet extends StatelessWidget {
@@ -6,23 +7,38 @@ class AddContentSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea( //Safearea = évite que le contenu soit masqué par les zones système,comme la navbar du tel
-      child: SingleChildScrollView(  //Pour faire défiler le contenu sur un petit écran
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24), //gauche, haut, droite, bas
+    return SafeArea(
+      //Safearea = évite que le contenu soit masqué par les zones système,comme la navbar du tel
+      child: SingleChildScrollView(
+        //Pour faire défiler le contenu sur un petit écran
+        padding: const EdgeInsets.fromLTRB(
+          16,
+          0,
+          16,
+          24,
+        ), //gauche, haut, droite, bas
         child: Column(
-          mainAxisSize: MainAxisSize.min, // La colonne prend seulement la hauteur nécessaire
-          crossAxisAlignment: CrossAxisAlignment.start, // Alignement au début de l’axe horizontal
+          mainAxisSize: MainAxisSize
+              .min, // La colonne prend seulement la hauteur nécessaire
+          crossAxisAlignment: CrossAxisAlignment
+              .start, // Alignement au début de l’axe horizontal
           children: [
             Text(
               'Ajouter un contenu',
-              style: Theme.of(context).textTheme.titleLarge, // Récupèrer le style de AppTheme
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge, // Récupèrer le style de AppTheme
             ),
             const SizedBox(height: 16),
             ListTile(
               leading: const Icon(Icons.edit_outlined),
               title: const Text('Écrire un texte'),
               onTap: () {
-                Navigator.pop(context); // pour l’instant, ferme seulement le panneau
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute<void>(
+                    builder: (context) => const AddTextPage(),
+                  ),
+                );
               },
             ),
             ListTile(
