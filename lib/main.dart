@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 
-import 'features/contents/view/pages/contents_page.dart';
+import 'features/contents/view/pages/contents_page.dart'; // Premier écran affiché au démarrage
 import 'app/theme/app_theme.dart';
 
 void main() {
-  runApp(const TraceApp());
+  runApp(const TraceApp()); // Lance Flutter avec TraceApp comme widget racine
 }
 
+//StatelessWidget : ce widget ne gère pas d’état mutable/
 class TraceApp extends StatelessWidget {
   const TraceApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) { // build décrit l’interface à afficher
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      home: const ContentsPage(),
+      debugShowCheckedModeBanner: false,  // Masque le bandeau « DEBUG »
+      theme: AppTheme.light, //Applique mon theme
+      home: const ContentsPage(), //écran d’accueil
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../widgets/add_content_sheet.dart';
 
+// Écran des contenus du patient (dashbaord patient)
 class ContentsPage extends StatelessWidget {
   const ContentsPage({super.key});
 
@@ -12,15 +13,15 @@ class ContentsPage extends StatelessWidget {
       body: const Center(child: Text('Aucun contenu pour le moment')),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          showModalBottomSheet<void>(
+          showModalBottomSheet<void>( // <void> indique qu’on n’attend aucune valeur en retour
             context: context,
-            showDragHandle: true,
-            isScrollControlled: true,
-            builder: (context) => const AddContentSheet(),
+            showDragHandle: true, // Affiche la petite poignée
+            isScrollControlled: true, // Permet au panneau de dépasser la hauteur limitée si besoin
+            builder: (context) => const AddContentSheet(), //construit le contenu du panneau
           );
         },
         tooltip: 'Ajouter un contenu',
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.add), //’icône choisie : add -> « +»
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
