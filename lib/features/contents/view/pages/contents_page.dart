@@ -14,7 +14,7 @@ class ContentsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Mes contenus')),
 
-      // Liste temporaire pour construire l’interface avant la BDD.
+      // Liste temporaire
       body: ListView(
         physics: const ClampingScrollPhysics(), // pas de rebond au définlemenr
         padding: const EdgeInsets.all(16),

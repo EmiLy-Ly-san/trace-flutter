@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../pages/add_text_page.dart';
+import 'package:go_router/go_router.dart';
 
 // Panneau proposant les différents formats de contenu
 class AddContentSheet extends StatelessWidget {
@@ -34,11 +34,14 @@ class AddContentSheet extends StatelessWidget {
               leading: const Icon(Icons.edit_outlined),
               title: const Text('Écrire un texte'),
               onTap: () {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute<void>(
-                    builder: (context) => const AddTextPage(),
-                  ),
-                );
+                // Récupère le routeur avant de fermer le panneau
+                final router = GoRouter.of(context);
+
+                // Ferme le panneaur
+                Navigator.pop(context);
+
+                // Ouvre l’éditeur en conservant le dashboard en dessous
+                router.push('/contents/add-text');
               },
             ),
             ListTile(
