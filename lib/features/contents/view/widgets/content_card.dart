@@ -6,7 +6,8 @@ class ContentCard extends StatelessWidget {
     super.key,
     required this.title,
     required this.date,
-    required this.preview,
+    this.preview = '',
+    this.imagePath,
     this.isShared = false,
     this.onOpen,
     this.onDelete,
@@ -16,6 +17,9 @@ class ContentCard extends StatelessWidget {
   final String title;
   final String date;
   final String preview;
+  // Chemin d’une image intégrée au projet.
+  // Sans image, la carte affiche l’aperçu texte.
+  final String? imagePath;
   final bool isShared;
 
   // Actions facultatives, qui seront branchées plus tard.
@@ -92,7 +96,13 @@ class ContentCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.edit_outlined, color: primary, size: 24),
+                Icon(
+                  imagePath != null
+                      ? Icons.image_outlined
+                      : Icons.edit_outlined,
+                  color: primary,
+                  size: 24,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -107,15 +117,27 @@ class ContentCard extends StatelessWidget {
 
             const SizedBox(height: 12),
 
-            // Aperçu du texte en italique.
-            Text(
-              preview,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                fontStyle: FontStyle.italic,
+            // Affiche une photo ou un aperçu du texte selon le contenu
+            if (imagePath != null)
+              ClipRRect(
+                // Arrondit les coins de la photo
+                borderRadius: BorderRadius.circular(8),
+                child: AspectRatio(
+                  // Format paysage, comme dans la maquette
+                  aspectRatio: 4 / 3,
+                  child: Image.asset(imagePath!, fit: BoxFit.cover),
+                ),
+              )
+            else
+              // Aperçu du texte en italique
+              Text(
+                preview,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontStyle: FontStyle.italic,
+                ),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
               ),
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
 
             const SizedBox(height: 12),
 
