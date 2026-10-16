@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:test/main.dart';
 
 void main() {
   testWidgets('Affiche les cartes de contenu', (tester) async {
     // Lance l’application et attend la fin du chargement.
-    await tester.pumpWidget(const TraceApp());
+
+    await tester.pumpWidget(
+      // Fournit Riverpod à l’application pendant le test.
+      const ProviderScope(child: TraceApp()),
+    );
     await tester.pumpAndSettle();
 
     // Vérifie les titres des contenus d’exemple.
@@ -23,7 +28,7 @@ void main() {
   });
 
   testWidgets('Ouvre le menu des formats de contenu', (tester) async {
-    await tester.pumpWidget(const TraceApp());
+    await tester.pumpWidget(const ProviderScope(child: TraceApp()));
 
     // Appuie sur le bouton « + ».
     await tester.tap(find.byTooltip('Ajouter un contenu'));
