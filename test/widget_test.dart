@@ -1,25 +1,38 @@
 import 'package:flutter/material.dart';
-
-// Test les widgets Flutter
 import 'package:flutter_test/flutter_test.dart';
 
-// « test » correspond au nom du projet dans pubspec.yaml
 import 'package:test/main.dart';
 
 void main() {
-  testWidgets('Affiche la page des contenus et le bouton d’ajout', (
-    WidgetTester tester,
-  ) async {
-    // Construit l’appli dans l’env de test
+  testWidgets('Affiche les cartes de contenu', (tester) async {
+    // Lance l’application et attend la fin du chargement.
+    await tester.pumpWidget(const TraceApp());
+    await tester.pumpAndSettle();
+
+    // Vérifie les titres des contenus d’exemple.
+    expect(find.text('Mes contenus'), findsOneWidget);
+    expect(find.text('Une promenade au calme'), findsOneWidget);
+    expect(find.text('Une photo à partager'), findsOneWidget);
+
+    // Vérifie la présence des deux cartes.
+    expect(find.byType(Card), findsNWidgets(2));
+
+    // Vérifie qu’aucune erreur n’a été remontée,
+    // notamment pendant le chargement de l’image.
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Ouvre le menu des formats de contenu', (tester) async {
     await tester.pumpWidget(const TraceApp());
 
-    // Vérifie que chaque élément attendu est présent une fois
-    expect(find.text('Mes contenus'), findsOneWidget);
+    // Appuie sur le bouton « + ».
+    await tester.tap(find.byTooltip('Ajouter un contenu'));
+    await tester.pumpAndSettle();
 
-    expect(find.text('Aucun contenu pour le moment'), findsOneWidget);
-
-    expect(find.byType(FloatingActionButton), findsOneWidget);
-
-    expect(find.byTooltip('Ajouter un contenu'), findsOneWidget);
+    // Vérifie les quatre choix proposés.
+    expect(find.text('Écrire un texte'), findsOneWidget);
+    expect(find.text('Ajouter une photo'), findsOneWidget);
+    expect(find.text('Enregistrer un vocal'), findsOneWidget);
+    expect(find.text('Importer un fichier'), findsOneWidget);
   });
 }
