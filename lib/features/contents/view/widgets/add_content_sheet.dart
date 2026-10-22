@@ -121,7 +121,16 @@ class AddContentSheet extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.mic_none),
               title: const Text('Enregistrer un vocal'),
-              onTap: () {},
+              onTap: () {
+                // Récupère le routeur avant de fermer le panneau
+                final router = GoRouter.of(context);
+
+                // Ferme le panneau de choix des formats
+                Navigator.pop(context);
+
+                // Ouvre l’écran d’enregistrement
+                router.push('/contents/add-audio');
+              },
             ),
             ListTile(
               leading: const Icon(Icons.attach_file),
