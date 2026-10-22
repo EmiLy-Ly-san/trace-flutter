@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 // Panneau proposant les différents formats de contenu
 class AddContentSheet extends StatelessWidget {
@@ -47,16 +48,44 @@ class AddContentSheet extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.photo_camera_outlined),
               title: const Text('Ajouter une photo'),
-              onTap: () {
-                Navigator.pop(context);
+              onTap: () async {
+                try {
+                  // Ouvre la galerie et attend la sélection d’une photo
+                  final photo = await ImagePicker().pickImage(
+                    source: ImageSource.gallery,
+                  );
+
+                  // Arrête si le panneau a été fermé pendant l’attente
+                  if (!context.mounted) return;
+
+                  // Si l’utilisateur annule, conserve le panneau sans naviguer
+                  if (photo == null) return;
+
+                  // Récupère le routeur avant de fermer le panneau
+                  final router = GoRouter.of(context);
+
+                  // Ferme le panneau de choix des formats
+                  Navigator.pop(context);
+
+                  // Ouvre l’aperçu avec la photo sélectionnée
+                  router.push('/contents/add-photo', extra: photo);
+                } catch (error) {
+                  // Vérifie que le panneau est encore affiché
+                  if (!context.mounted) return;
+
+                  // Informe l’utilisateur si la galerie ne peut pas être ouverte
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Impossible d’ouvrir la galerie'),
+                    ),
+                  );
+                }
               },
             ),
             ListTile(
               leading: const Icon(Icons.mic_none),
               title: const Text('Enregistrer un vocal'),
-              onTap: () {
-                Navigator.pop(context);
-              },
+              onTap: () {},
             ),
             ListTile(
               leading: const Icon(Icons.attach_file),
