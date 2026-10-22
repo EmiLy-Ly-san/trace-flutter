@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
@@ -16,8 +17,17 @@ class _AddAudioPageState extends State<AddAudioPage> {
   // Objet qui contrôle l’enregistrement du micro
   final _recorder = AudioRecorder();
 
+  // Objet qui contrôle la lecture du fichier audio
+  final _player = AudioPlayer();
+
+  // Écoute les changements d’état du lecteur
+  StreamSubscription<PlayerState>? _playerSubscription;
+
   // Indique si le micro enregistre actuellement
   bool _isRecording = false;
+
+  // Indique si le vocal est en cours de lecture
+  bool _isPlaying = false;
 
   // Empêche plusieurs actions pendant une opération
   bool _isBusy = false;
@@ -30,6 +40,20 @@ class _AddAudioPageState extends State<AddAudioPage> {
 
   // Durée écoulée en secondes
   int _elapsedSeconds = 0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Actualise le bouton lorsque la lecture démarre ou se termine
+    _playerSubscription = _player.onPlayerStateChanged.listen((state) {
+      if (!mounted) return;
+
+      setState(() {
+        _isPlaying = state == PlayerState.playing;
+      });
+    });
+  }
 
   // Formate la durée sous la forme minutes:secondes
   String get _formattedDuration {
@@ -66,6 +90,11 @@ class _AddAudioPageState extends State<AddAudioPage> {
           _showError('Aucun fichier audio n’a été créé');
         }
       } else {
+        // Arrête une éventuelle lecture avant d’utiliser le micro
+        await _player.stop();
+
+        if (!mounted) return;
+
         // Vérifie et demande l’autorisation d’utiliser le micro
         final hasPermission = await _recorder.hasPermission();
 
@@ -115,7 +144,38 @@ class _AddAudioPageState extends State<AddAudioPage> {
 
       _showError('Impossible de démarrer ou d’arrêter l’enregistrement');
     } finally {
-      // Réactive le bouton après l’opération
+      // Réactive les boutons après l’opération
+      if (mounted) {
+        setState(() {
+          _isBusy = false;
+        });
+      }
+    }
+  }
+
+  // Démarre ou arrête la lecture du vocal
+  Future<void> _togglePlayback() async {
+    final path = _audioPath;
+
+    if (_isBusy || _isRecording || path == null) return;
+
+    setState(() {
+      _isBusy = true;
+    });
+
+    try {
+      if (_isPlaying) {
+        // Arrête la lecture et revient au début du vocal
+        await _player.stop();
+      } else {
+        // Lit le fichier audio enregistré sur le téléphone
+        await _player.play(DeviceFileSource(path));
+      }
+    } catch (error) {
+      if (!mounted) return;
+
+      _showError('Impossible de lire le vocal');
+    } finally {
       if (mounted) {
         setState(() {
           _isBusy = false;
@@ -136,8 +196,16 @@ class _AddAudioPageState extends State<AddAudioPage> {
     // Arrête le compteur lorsque la page est supprimée
     _timer?.cancel();
 
-    // Libère le micro lorsque la page est supprimée
+    // Arrête l’écoute des changements d’état du lecteur
+    final subscription = _playerSubscription;
+
+    if (subscription != null) {
+      unawaited(subscription.cancel());
+    }
+
+    // Libère le lecteur et le micro lorsque la page est supprimée
     // unawaited lance le nettoyage sans attendre dans dispose
+    unawaited(_player.dispose());
     unawaited(_recorder.dispose());
 
     super.dispose();
@@ -168,7 +236,7 @@ class _AddAudioPageState extends State<AddAudioPage> {
 
                     const SizedBox(height: 24),
 
-                    // Affiche la durée du vocal
+                    // Affiche la durée totale enregistrée
                     Text(
                       _formattedDuration,
                       style: theme.textTheme.headlineSmall,
@@ -180,6 +248,8 @@ class _AddAudioPageState extends State<AddAudioPage> {
                     Text(
                       _isRecording
                           ? 'Enregistrement en cours'
+                          : _isPlaying
+                          ? 'Lecture en cours'
                           : _audioPath != null
                           ? 'Enregistrement terminé'
                           : 'Prêt à enregistrer',
@@ -189,6 +259,17 @@ class _AddAudioPageState extends State<AddAudioPage> {
                   ],
                 ),
               ),
+
+              // Affiche la lecture uniquement lorsqu’un vocal est disponible
+              if (_audioPath != null && !_isRecording) ...[
+                OutlinedButton.icon(
+                  onPressed: _isBusy ? null : _togglePlayback,
+                  icon: Icon(_isPlaying ? Icons.stop : Icons.play_arrow),
+                  label: Text(_isPlaying ? 'Arrêter la lecture' : 'Écouter'),
+                ),
+
+                const SizedBox(height: 12),
+              ],
 
               // Désactive temporairement le bouton pendant une opération
               FilledButton.icon(
