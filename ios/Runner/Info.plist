@@ -70,5 +70,7 @@
 <string>Choisir une photo à ajouter à vos contenus</string>
 <key>NSCameraUsageDescription</key>
 <string>Prendre une photo à ajouter à vos contenus</string>
+<key>NSMicrophoneUsageDescription</key>
+<string>Enregistrer un vocal à ajouter à vos contenus</string>
 </dict>
 </plist>
