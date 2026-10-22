@@ -23,6 +23,12 @@ class _AddAudioPageState extends State<AddAudioPage> {
   // Écoute les changements d’état du lecteur
   StreamSubscription<PlayerState>? _playerSubscription;
 
+  // Écoute la progression de la lecture
+  StreamSubscription<Duration>? _positionSubscription;
+
+  // Écoute la durée réelle du fichier audio
+  StreamSubscription<Duration>? _durationSubscription;
+
   // Indique si le micro enregistre actuellement
   bool _isRecording = false;
 
@@ -41,6 +47,12 @@ class _AddAudioPageState extends State<AddAudioPage> {
   // Durée écoulée en secondes
   int _elapsedSeconds = 0;
 
+  // Position actuelle pendant la lecture
+  Duration _playbackPosition = Duration.zero;
+
+  // Durée réelle du fichier audio
+  Duration _playbackDuration = Duration.zero;
+
   @override
   void initState() {
     super.initState();
@@ -51,16 +63,53 @@ class _AddAudioPageState extends State<AddAudioPage> {
 
       setState(() {
         _isPlaying = state == PlayerState.playing;
+
+        // Affiche la fin du vocal lorsque la lecture est terminée
+        if (state == PlayerState.completed) {
+          _playbackPosition = _playbackDuration;
+        }
+      });
+    });
+
+    // Actualise la position à partir des informations du lecteur
+    _positionSubscription = _player.onPositionChanged.listen((position) {
+      if (!mounted) return;
+
+      setState(() {
+        _playbackPosition = position;
+      });
+    });
+
+    // Récupère la durée réelle du fichier lors de son chargement
+    _durationSubscription = _player.onDurationChanged.listen((duration) {
+      if (!mounted) return;
+
+      setState(() {
+        _playbackDuration = duration;
       });
     });
   }
 
-  // Formate la durée sous la forme minutes:secondes
-  String get _formattedDuration {
-    final minutes = (_elapsedSeconds ~/ 60).toString().padLeft(2, '0');
-    final seconds = (_elapsedSeconds % 60).toString().padLeft(2, '0');
+  // Formate une durée sous la forme minutes:secondes
+  String _formatDuration(Duration duration) {
+    final minutes = (duration.inSeconds ~/ 60).toString().padLeft(2, '0');
+    final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
 
     return '$minutes:$seconds';
+  }
+
+  // Formate la durée écoulée pendant l’enregistrement
+  String get _formattedDuration {
+    return _formatDuration(Duration(seconds: _elapsedSeconds));
+  }
+
+  // Utilise la durée réelle du fichier dès qu’elle est disponible
+  String get _formattedPlaybackDuration {
+    if (_playbackDuration > Duration.zero) {
+      return _formatDuration(_playbackDuration);
+    }
+
+    return _formattedDuration;
   }
 
   // Démarre ou arrête l’enregistrement selon son état actuel
@@ -125,6 +174,8 @@ class _AddAudioPageState extends State<AddAudioPage> {
           _isRecording = true;
           _audioPath = null;
           _elapsedSeconds = 0;
+          _playbackPosition = Duration.zero;
+          _playbackDuration = Duration.zero;
         });
 
         // Annule un éventuel ancien compteur
@@ -167,7 +218,18 @@ class _AddAudioPageState extends State<AddAudioPage> {
       if (_isPlaying) {
         // Arrête la lecture et revient au début du vocal
         await _player.stop();
+
+        if (!mounted) return;
+
+        setState(() {
+          _playbackPosition = Duration.zero;
+        });
       } else {
+        // Repart du début à chaque nouvelle écoute
+        setState(() {
+          _playbackPosition = Duration.zero;
+        });
+
         // Lit le fichier audio enregistré sur le téléphone
         await _player.play(DeviceFileSource(path));
       }
@@ -197,10 +259,22 @@ class _AddAudioPageState extends State<AddAudioPage> {
     _timer?.cancel();
 
     // Arrête l’écoute des changements d’état du lecteur
-    final subscription = _playerSubscription;
+    final playerSubscription = _playerSubscription;
 
-    if (subscription != null) {
-      unawaited(subscription.cancel());
+    if (playerSubscription != null) {
+      unawaited(playerSubscription.cancel());
+    }
+
+    // Arrête l’écoute de la position et de la durée
+    final positionSubscription = _positionSubscription;
+    final durationSubscription = _durationSubscription;
+
+    if (positionSubscription != null) {
+      unawaited(positionSubscription.cancel());
+    }
+
+    if (durationSubscription != null) {
+      unawaited(durationSubscription.cancel());
     }
 
     // Libère le lecteur et le micro lorsque la page est supprimée
@@ -236,9 +310,13 @@ class _AddAudioPageState extends State<AddAudioPage> {
 
                     const SizedBox(height: 24),
 
-                    // Affiche la durée totale enregistrée
+                    // Affiche le compteur pendant l’enregistrement
+                    // Puis la position de lecture et la durée totale
                     Text(
-                      _formattedDuration,
+                      _audioPath != null && !_isRecording
+                          ? '${_formatDuration(_playbackPosition)}'
+                                ' / $_formattedPlaybackDuration'
+                          : _formattedDuration,
                       style: theme.textTheme.headlineSmall,
                     ),
 
