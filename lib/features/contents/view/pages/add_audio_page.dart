@@ -25,6 +25,20 @@ class _AddAudioPageState extends State<AddAudioPage> {
   // Chemin du dernier fichier enregistré
   String? _audioPath;
 
+  // Déclenche une mise à jour chaque seconde
+  Timer? _timer;
+
+  // Durée écoulée en secondes
+  int _elapsedSeconds = 0;
+
+  // Formate la durée sous la forme minutes:secondes
+  String get _formattedDuration {
+    final minutes = (_elapsedSeconds ~/ 60).toString().padLeft(2, '0');
+    final seconds = (_elapsedSeconds % 60).toString().padLeft(2, '0');
+
+    return '$minutes:$seconds';
+  }
+
   // Démarre ou arrête l’enregistrement selon son état actuel
   Future<void> _toggleRecording() async {
     if (_isBusy) return;
@@ -37,6 +51,9 @@ class _AddAudioPageState extends State<AddAudioPage> {
       if (_isRecording) {
         // Arrête le micro et récupère le chemin du fichier
         final path = await _recorder.stop();
+
+        // Fige la durée lorsque l’enregistrement s’arrête
+        _timer?.cancel();
 
         if (!mounted) return;
 
@@ -78,6 +95,19 @@ class _AddAudioPageState extends State<AddAudioPage> {
         setState(() {
           _isRecording = true;
           _audioPath = null;
+          _elapsedSeconds = 0;
+        });
+
+        // Annule un éventuel ancien compteur
+        _timer?.cancel();
+
+        // Actualise la durée chaque seconde
+        _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+          if (!mounted) return;
+
+          setState(() {
+            _elapsedSeconds++;
+          });
         });
       }
     } catch (error) {
@@ -103,9 +133,13 @@ class _AddAudioPageState extends State<AddAudioPage> {
 
   @override
   void dispose() {
+    // Arrête le compteur lorsque la page est supprimée
+    _timer?.cancel();
+
     // Libère le micro lorsque la page est supprimée
     // unawaited lance le nettoyage sans attendre dans dispose
     unawaited(_recorder.dispose());
+
     super.dispose();
   }
 
@@ -121,7 +155,7 @@ class _AddAudioPageState extends State<AddAudioPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Zone centrale avec le micro et l’état du vocal
+              // Zone centrale avec le micro, la durée et l’état du vocal
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -133,6 +167,14 @@ class _AddAudioPageState extends State<AddAudioPage> {
                     ),
 
                     const SizedBox(height: 24),
+
+                    // Affiche la durée du vocal
+                    Text(
+                      _formattedDuration,
+                      style: theme.textTheme.headlineSmall,
+                    ),
+
+                    const SizedBox(height: 12),
 
                     // Adapte le message à l’état de l’enregistrement
                     Text(
