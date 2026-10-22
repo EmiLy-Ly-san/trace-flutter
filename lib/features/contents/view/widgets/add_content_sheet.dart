@@ -50,10 +50,46 @@ class AddContentSheet extends StatelessWidget {
               title: const Text('Ajouter une photo'),
               onTap: () async {
                 try {
-                  // Ouvre la galerie et attend la sélection d’une photo
-                  final photo = await ImagePicker().pickImage(
-                    source: ImageSource.gallery,
+                  // Propose de choisir une photo ou d’en prendre une
+                  final source = await showDialog<ImageSource>(
+                    context: context,
+                    builder: (dialogContext) {
+                      return SimpleDialog(
+                        title: const Text('Ajouter une photo'),
+                        children: [
+                          SimpleDialogOption(
+                            // Ferme le dialogue en renvoyant le choix galerie
+                            onPressed: () {
+                              Navigator.pop(dialogContext, ImageSource.gallery);
+                            },
+                            child: const ListTile(
+                              leading: Icon(Icons.photo_library_outlined),
+                              title: Text('Choisir dans la galerie'),
+                            ),
+                          ),
+                          SimpleDialogOption(
+                            // Ferme le dialogue en renvoyant le choix appareil photo
+                            onPressed: () {
+                              Navigator.pop(dialogContext, ImageSource.camera);
+                            },
+                            child: const ListTile(
+                              leading: Icon(Icons.photo_camera_outlined),
+                              title: Text('Prendre une photo'),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   );
+
+                  // Arrête si le panneau a été fermé pendant l’attente
+                  if (!context.mounted) return;
+
+                  // Si l’utilisateur annule le choix, conserve le panneau
+                  if (source == null) return;
+
+                  // Ouvre la galerie ou l’appareil photo selon le choix
+                  final photo = await ImagePicker().pickImage(source: source);
 
                   // Arrête si le panneau a été fermé pendant l’attente
                   if (!context.mounted) return;
@@ -73,10 +109,10 @@ class AddContentSheet extends StatelessWidget {
                   // Vérifie que le panneau est encore affiché
                   if (!context.mounted) return;
 
-                  // Informe l’utilisateur si la galerie ne peut pas être ouverte
+                  // Informe l’utilisateur si la photo ne peut pas être récupérée
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Impossible d’ouvrir la galerie'),
+                      content: Text('Impossible de récupérer la photo'),
                     ),
                   );
                 }

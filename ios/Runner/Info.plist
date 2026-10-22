@@ -68,5 +68,7 @@
 	</array>
 	<key>NSPhotoLibraryUsageDescription</key>
 <string>Choisir une photo à ajouter à vos contenus</string>
+<key>NSCameraUsageDescription</key>
+<string>Prendre une photo à ajouter à vos contenus</string>
 </dict>
 </plist>
