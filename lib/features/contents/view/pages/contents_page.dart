@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../widgets/add_content_sheet.dart';
 import '../widgets/content_card.dart';
@@ -18,26 +19,53 @@ class ContentsPage extends StatelessWidget {
       body: ListView(
         physics: const ClampingScrollPhysics(), // pas de rebond au définlemenr
         padding: const EdgeInsets.all(16),
-        children: const [
+        children: [
           ContentCard(
             title: 'Une promenade au calme',
             date: '16 octobre 2026',
             preview:
                 'Je suis sortie marcher un moment. Ça m’a permis de '
                 'prendre du recul et de profiter de ce qui m’entourait.',
+
+            // Transmet les informations du contenu à la page de détail.
+            onOpen: () {
+              context.push(
+                '/contents/detail',
+                extra: <String, Object?>{
+                  'title': 'Une promenade au calme',
+                  'date': '16 octobre 2026',
+                  'text':
+                      'Je suis sortie marcher un moment. Ça m’a permis de '
+                      'prendre du recul et de profiter de ce qui m’entourait.',
+                  'isShared': false,
+                },
+              );
+            },
           ),
 
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
 
           ContentCard(
             title: 'Une photo à partager',
             date: '15 octobre 2026',
             imagePath: 'assets/images/TURBOPRUNE-banniere-fb.jpg',
             isShared: true,
+
+            // Ouvre le détail avec la photo et son statut de partage.
+            onOpen: () {
+              context.push(
+                '/contents/detail',
+                extra: <String, Object?>{
+                  'title': 'Une photo à partager',
+                  'date': '15 octobre 2026',
+                  'imagePath': 'assets/images/TURBOPRUNE-banniere-fb.jpg',
+                  'isShared': true,
+                },
+              );
+            },
           ),
 
-          // Garde de l’espace sous la dernière carte pour le bouton « + ».
-          SizedBox(height: 80),
+          const SizedBox(height: 80),
         ],
       ),
 
