@@ -5,6 +5,7 @@ import '../../features/contents/view/pages/add_text_page.dart';
 import '../../features/contents/view/pages/contents_page.dart';
 import '../../features/contents/view/pages/content_detail_page.dart';
 import '../../features/contents/view/pages/add_photo_page.dart';
+import '../../features/contents/view/pages/add_audio_page.dart';
 
 // Centralise les routes de l’application.
 final appRouter = GoRouter(
@@ -64,6 +65,10 @@ final appRouter = GoRouter(
 
         return AddPhotoPage(photo: photo);
       },
+    ),
+    GoRoute(
+      path: '/contents/add-audio',
+      builder: (context, state) => const AddAudioPage(),
     ),
   ],
 );
