@@ -1,8 +1,113 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:record/record.dart';
 
 // Écran de création d’un vocal
-class AddAudioPage extends StatelessWidget {
+class AddAudioPage extends StatefulWidget {
   const AddAudioPage({super.key});
+
+  @override
+  State<AddAudioPage> createState() => _AddAudioPageState();
+}
+
+class _AddAudioPageState extends State<AddAudioPage> {
+  // Objet qui contrôle l’enregistrement du micro
+  final _recorder = AudioRecorder();
+
+  // Indique si le micro enregistre actuellement
+  bool _isRecording = false;
+
+  // Empêche plusieurs actions pendant une opération
+  bool _isBusy = false;
+
+  // Chemin du dernier fichier enregistré
+  String? _audioPath;
+
+  // Démarre ou arrête l’enregistrement selon son état actuel
+  Future<void> _toggleRecording() async {
+    if (_isBusy) return;
+
+    setState(() {
+      _isBusy = true;
+    });
+
+    try {
+      if (_isRecording) {
+        // Arrête le micro et récupère le chemin du fichier
+        final path = await _recorder.stop();
+
+        if (!mounted) return;
+
+        setState(() {
+          _isRecording = false;
+          _audioPath = path;
+        });
+
+        if (path == null) {
+          _showError('Aucun fichier audio n’a été créé');
+        }
+      } else {
+        // Vérifie et demande l’autorisation d’utiliser le micro
+        final hasPermission = await _recorder.hasPermission();
+
+        if (!mounted) return;
+
+        if (!hasPermission) {
+          _showError('L’accès au micro est nécessaire pour enregistrer');
+          return;
+        }
+
+        // Trouve le dossier temporaire de l’application
+        final directory = await getTemporaryDirectory();
+
+        if (!mounted) return;
+
+        // Utilise un nom différent pour chaque enregistrement
+        final fileName = 'vocal_${DateTime.now().microsecondsSinceEpoch}.m4a';
+
+        // Démarre un enregistrement au format AAC dans un fichier M4A
+        await _recorder.start(
+          const RecordConfig(encoder: AudioEncoder.aacLc),
+          path: '${directory.path}/$fileName',
+        );
+
+        if (!mounted) return;
+
+        setState(() {
+          _isRecording = true;
+          _audioPath = null;
+        });
+      }
+    } catch (error) {
+      if (!mounted) return;
+
+      _showError('Impossible de démarrer ou d’arrêter l’enregistrement');
+    } finally {
+      // Réactive le bouton après l’opération
+      if (mounted) {
+        setState(() {
+          _isBusy = false;
+        });
+      }
+    }
+  }
+
+  // Affiche un message en bas de l’écran
+  void _showError(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  @override
+  void dispose() {
+    // Libère le micro lorsque la page est supprimée
+    // unawaited lance le nettoyage sans attendre dans dispose
+    unawaited(_recorder.dispose());
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,37 +121,46 @@ class AddAudioPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Zone centrale avec le micro et la durée
+              // Zone centrale avec le micro et l’état du vocal
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
-                      Icons.mic_none,
+                      _isRecording ? Icons.mic : Icons.mic_none,
                       size: 64,
                       color: theme.colorScheme.primary,
                     ),
 
                     const SizedBox(height: 24),
 
-                    // Durée affichée avant le début de l’enregistrement
-                    Text('00:00', style: theme.textTheme.headlineSmall),
-
-                    const SizedBox(height: 12),
-
+                    // Adapte le message à l’état de l’enregistrement
                     Text(
-                      'Prêt à enregistrer',
+                      _isRecording
+                          ? 'Enregistrement en cours'
+                          : _audioPath != null
+                          ? 'Enregistrement terminé'
+                          : 'Prêt à enregistrer',
                       style: theme.textTheme.bodyLarge,
+                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
               ),
 
-              // Bouton désactivé tant que le micro n’est pas branché
+              // Désactive temporairement le bouton pendant une opération
               FilledButton.icon(
-                onPressed: null,
-                icon: const Icon(Icons.mic),
-                label: const Text('Commencer'),
+                onPressed: _isBusy ? null : _toggleRecording,
+                icon: Icon(_isRecording ? Icons.stop : Icons.mic),
+                label: Text(
+                  _isBusy
+                      ? 'Patiente…'
+                      : _isRecording
+                      ? 'Arrêter'
+                      : _audioPath != null
+                      ? 'Recommencer'
+                      : 'Commencer',
+                ),
               ),
             ],
           ),
