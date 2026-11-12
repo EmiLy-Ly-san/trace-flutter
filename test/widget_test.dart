@@ -69,6 +69,45 @@ void main() {
     await closeApp(tester);
   });
 
+  testWidgets('Supprime un contenu seulement après confirmation', (
+    tester,
+  ) async {
+    await tester.runAsync(() {
+      return ContentsRepository(
+        database,
+      ).addText(title: 'Une promenade au calme', body: 'Je suis sortie.');
+    });
+
+    await startApp(tester);
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await tester.pumpAndSettle();
+    expect(find.text('Une promenade au calme'), findsOneWidget);
+
+    // Appuie sur la poubelle, puis sur « Annuler » : la carte reste.
+    await tester.tap(find.byTooltip('Supprimer le contenu'));
+    await tester.pumpAndSettle();
+    expect(find.text('Supprimer ce contenu ?'), findsOneWidget);
+
+    await tester.tap(find.text('Annuler'));
+    await tester.pumpAndSettle();
+    expect(find.text('Une promenade au calme'), findsOneWidget);
+
+    // Recommence et confirme : la carte disparaît.
+    await tester.tap(find.byTooltip('Supprimer le contenu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Supprimer'));
+    await tester.pumpAndSettle();
+
+    // Laisse la base finir la suppression en temps réel.
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Une promenade au calme'), findsNothing);
+    expect(find.text('Aucun contenu pour le moment'), findsOneWidget);
+
+    await closeApp(tester);
+  });
+
   testWidgets('Ouvre le menu des formats de contenu', (tester) async {
     await startApp(tester);
 

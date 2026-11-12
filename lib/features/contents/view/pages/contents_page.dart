@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/storage/app_database.dart';
 import '../../controllers/contents_providers.dart';
 import '../widgets/add_content_sheet.dart';
 import '../widgets/content_card.dart';
@@ -45,6 +46,9 @@ class ContentsPage extends ConsumerWidget {
                 date: date,
                 preview: content.body ?? '',
                 isShared: content.isShared,
+
+                // Demande confirmation avant de supprimer.
+                onDelete: () => _confirmDelete(context, ref, content),
 
                 // Transmet les informations du contenu à la page de détail.
                 onOpen: () {
@@ -96,6 +100,37 @@ class ContentsPage extends ConsumerWidget {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
+}
+
+// Demande confirmation, puis supprime le contenu.
+Future<void> _confirmDelete(
+  BuildContext context,
+  WidgetRef ref,
+  Content content,
+) async {
+  // showDialog affiche une petite fenêtre au centre de l'écran.
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('Supprimer ce contenu ?'),
+      content: Text('« ${content.title} » sera supprimé de ce téléphone.'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, false),
+          child: const Text('Annuler'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, true),
+          child: const Text('Supprimer'),
+        ),
+      ],
+    ),
+  );
+
+  // Si on n'a pas appuyé sur « Supprimer », on s'arrête.
+  if (confirmed != true) return;
+
+  await ref.read(contentsRepositoryProvider).deleteById(content.id);
 }
 
 // Transforme une date en texte français, par exemple « 16 octobre 2026 ».
