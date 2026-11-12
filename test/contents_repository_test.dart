@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:test/core/storage/app_database.dart';
+import 'package:test/features/contents/data/local/contents_table.dart';
 import 'package:test/features/contents/data/repositories/contents_repository.dart';
 
 void main() {
@@ -32,6 +35,51 @@ void main() {
     final after = await repository.getAll();
     expect(after, hasLength(1));
     expect(after.first.title, 'Deuxième');
+  });
+
+  test('enregistre un vocal avec le chemin de son fichier', () async {
+    await repository.addAudio(
+      title: 'Mon vocal',
+      filePath: '/chemin/vers/vocal.m4a',
+    );
+
+    final contents = await repository.getAll();
+
+    expect(contents, hasLength(1));
+    expect(contents.first.title, 'Mon vocal');
+    expect(contents.first.type, ContentType.audio);
+    expect(contents.first.filePath, '/chemin/vers/vocal.m4a');
+    expect(contents.first.body, isNull);
+  });
+
+  test('supprime aussi le fichier d’un vocal', () async {
+    // Crée un vrai fichier temporaire pour le test
+    final folder = await Directory.systemTemp.createTemp('vocal_test');
+    final file = File('${folder.path}/vocal.m4a');
+    await file.writeAsString('faux audio');
+
+    await repository.addAudio(title: 'Mon vocal', filePath: file.path);
+    final saved = (await repository.getAll()).single;
+
+    await repository.deleteById(saved.id);
+
+    // La ligne et le fichier ont disparu
+    expect(await repository.getAll(), isEmpty);
+    expect(await file.exists(), isFalse);
+
+    await folder.delete(recursive: true);
+  });
+
+  test('supprime un vocal même si son fichier est déjà absent', () async {
+    await repository.addAudio(
+      title: 'Mon vocal',
+      filePath: '/chemin/inexistant/vocal.m4a',
+    );
+    final saved = (await repository.getAll()).single;
+
+    await repository.deleteById(saved.id);
+
+    expect(await repository.getAll(), isEmpty);
   });
 
   test('ne supprime rien si le numéro n’existe pas', () async {

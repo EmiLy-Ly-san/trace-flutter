@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart';
 
 import '../../../../core/storage/app_database.dart';
@@ -25,11 +27,47 @@ class ContentsRepository {
         );
   }
 
-  // Supprime le contenu qui a ce numéro (id)
+  // Range un nouveau vocal dans la base
+  // filePath est l'endroit où le fichier est gardé sur le téléphone
+  Future<void> addAudio({
+    required String title,
+    required String filePath,
+  }) async {
+    await _database
+        .into(_database.contents)
+        .insert(
+          ContentsCompanion.insert(
+            title: title,
+            type: ContentType.audio,
+            createdAt: DateTime.now(),
+            filePath: Value(filePath),
+          ),
+        );
+  }
+
+  // Supprime le contenu qui a ce numéro (id), et son fichier s'il en a un
   Future<void> deleteById(int id) async {
+    // Lit d'abord la ligne pour connaître le chemin de son fichier
+    final content = await (_database.select(
+      _database.contents,
+    )..where((table) => table.id.equals(id))).getSingleOrNull();
+
+    // Rien à supprimer si ce numéro n'existe pas
+    if (content == null) return;
+
+    // Supprime d'abord la ligne dans la base
     await (_database.delete(
       _database.contents,
     )..where((table) => table.id.equals(id))).go();
+
+    // Puis supprime le fichier du téléphone, s'il existe
+    final path = content.filePath;
+    if (path != null) {
+      final file = File(path);
+      if (await file.exists()) {
+        await file.delete();
+      }
+    }
   }
 
   // Lit tous les contenus rangés dans la base
