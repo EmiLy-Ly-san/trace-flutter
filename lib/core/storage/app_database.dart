@@ -19,7 +19,9 @@ part 'app_database.g.dart';
 // tables: [Contents] indique à Drift quelles tables créer dans la base
 @DriftDatabase(tables: [Contents])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  // Sans paramètre, la base ouvre le vrai fichier trace.db
+  // Les tests peuvent fournir une base en mémoire à la place
+  AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   // Version du schéma de la base
   // Ce numéro augmentera lorsque des tables seront ajoutées
