@@ -1,3 +1,6 @@
+// Fichier écrit par nous : il définit la base locale et ses tables.
+// Son fichier généré, app_database.g.dart, est créé par Drift.
+
 import 'dart:io';
 
 import 'package:drift/drift.dart';
@@ -5,12 +8,16 @@ import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+// Importe notre table Contents pour pouvoir la déclarer dans la base
+import '../../features/contents/data/local/contents_table.dart';
+
 part 'app_database.g.dart';
 
 // Base locale de l'application
 // AppDatabase est notre classe
 // _$AppDatabase sera généré par Drift
-@DriftDatabase(tables: [])
+// tables: [Contents] indique à Drift quelles tables créer dans la base
+@DriftDatabase(tables: [Contents])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 

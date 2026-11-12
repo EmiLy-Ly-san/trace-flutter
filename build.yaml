@@ -1,0 +1,10 @@
+targets:
+  $default:
+    builders:
+      source_gen:combining_builder:
+        options:
+          # En-tête ajouté en haut de chaque fichier généré
+          header: |-
+            // GENERATED CODE - DO NOT MODIFY BY HAND
+            // Fichier généré par Drift à partir de app_database.dart.
+            // Il est recréé par build_runner : ne pas le modifier à la main.
