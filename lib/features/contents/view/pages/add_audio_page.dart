@@ -1,24 +1,33 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 
+import '../../controllers/contents_providers.dart';
+
 // Écran de création d’un vocal
-class AddAudioPage extends StatefulWidget {
+class AddAudioPage extends ConsumerStatefulWidget {
   const AddAudioPage({super.key});
 
   @override
-  State<AddAudioPage> createState() => _AddAudioPageState();
+  ConsumerState<AddAudioPage> createState() => _AddAudioPageState();
 }
 
-class _AddAudioPageState extends State<AddAudioPage> {
+class _AddAudioPageState extends ConsumerState<AddAudioPage> {
   // Objet qui contrôle l’enregistrement du micro
   final _recorder = AudioRecorder();
 
   // Objet qui contrôle la lecture du fichier audio
   final _player = AudioPlayer();
+
+  // Retient le titre écrit par le patient
+  final _titleController = TextEditingController();
 
   // Écoute les changements d’état du lecteur
   StreamSubscription<PlayerState>? _playerSubscription;
@@ -246,6 +255,59 @@ class _AddAudioPageState extends State<AddAudioPage> {
     }
   }
 
+  // Déplace le vocal dans un dossier sûr, puis le range dans la base
+  Future<void> _save() async {
+    final path = _audioPath;
+    final title = _titleController.text.trim();
+
+    if (_isBusy || _isRecording || path == null) return;
+
+    // Sans titre, on prévient et on n’enregistre rien
+    if (title.isEmpty) {
+      _showError('Ajoute un titre');
+      return;
+    }
+
+    setState(() {
+      _isBusy = true;
+    });
+
+    try {
+      // Arrête la lecture avant de déplacer le fichier
+      await _player.stop();
+
+      // Dossier privé de l’application, qui n’est pas nettoyé par le système
+      final documents = await getApplicationDocumentsDirectory();
+      final folder = Directory(p.join(documents.path, 'audios'));
+      await folder.create(recursive: true);
+
+      // Copie le fichier au nouvel endroit, puis supprime l’ancien
+      final newPath = p.join(folder.path, p.basename(path));
+      await File(path).copy(newPath);
+      await File(path).delete();
+
+      // Range le vocal dans la base
+      await ref
+          .read(contentsRepositoryProvider)
+          .addAudio(title: title, filePath: newPath);
+
+      if (!mounted) return;
+
+      // Revient à l’écran précédent
+      context.pop();
+    } catch (error) {
+      if (!mounted) return;
+
+      _showError('Impossible d’enregistrer le vocal');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isBusy = false;
+        });
+      }
+    }
+  }
+
   // Affiche un message en bas de l’écran
   void _showError(String message) {
     ScaffoldMessenger.of(
@@ -257,6 +319,9 @@ class _AddAudioPageState extends State<AddAudioPage> {
   void dispose() {
     // Arrête le compteur lorsque la page est supprimée
     _timer?.cancel();
+
+    // Libère le champ du titre
+    _titleController.dispose();
 
     // Arrête l’écoute des changements d’état du lecteur
     final playerSubscription = _playerSubscription;
@@ -290,13 +355,32 @@ class _AddAudioPageState extends State<AddAudioPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Enregistrer un vocal')),
+      appBar: AppBar(
+        title: const Text('Enregistrer un vocal'),
+
+        // Bouton grisé tant qu’aucun vocal n’est enregistré
+        actions: [
+          TextButton(
+            onPressed: _audioPath != null && !_isRecording && !_isBusy
+                ? _save
+                : null,
+            child: const Text('Enregistrer'),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Champ de saisie du titre
+              TextField(
+                controller: _titleController,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: const InputDecoration(hintText: 'Titre'),
+              ),
+
               // Zone centrale avec le micro, la durée et l’état du vocal
               Expanded(
                 child: Column(
