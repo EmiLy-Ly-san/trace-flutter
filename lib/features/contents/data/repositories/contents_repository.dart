@@ -25,6 +25,13 @@ class ContentsRepository {
         );
   }
 
+  // Supprime le contenu qui a ce numéro (id)
+  Future<void> deleteById(int id) async {
+    await (_database.delete(
+      _database.contents,
+    )..where((table) => table.id.equals(id))).go();
+  }
+
   // Lit tous les contenus rangés dans la base
   Future<List<Content>> getAll() {
     return _database.select(_database.contents).get();
