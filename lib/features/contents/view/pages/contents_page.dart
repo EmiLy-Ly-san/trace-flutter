@@ -1,72 +1,67 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../controllers/contents_providers.dart';
 import '../widgets/add_content_sheet.dart';
 import '../widgets/content_card.dart';
 
 // Écran principal des contenus du patient.
-class ContentsPage extends StatelessWidget {
+// ConsumerWidget : un écran qui peut écouter Riverpod.
+class ContentsPage extends ConsumerWidget {
   const ContentsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // On écoute la liste : l'écran se redessine à chaque changement.
+    final contents = ref.watch(contentsProvider);
+
     // Scaffold fournit la structure de la page :
     // barre du haut, corps et bouton flottant.
     return Scaffold(
       appBar: AppBar(title: const Text('Mes contenus')),
 
-      // Liste temporaire
-      body: ListView(
-        physics: const ClampingScrollPhysics(), // pas de rebond au définlemenr
-        padding: const EdgeInsets.all(16),
-        children: [
-          ContentCard(
-            title: 'Une promenade au calme',
-            date: '16 octobre 2026',
-            preview:
-                'Je suis sortie marcher un moment. Ça m’a permis de '
-                'prendre du recul et de profiter de ce qui m’entourait.',
+      // when() choisit quoi afficher selon l'état de la liste.
+      body: contents.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => const Center(child: Text('Erreur de lecture')),
+        data: (items) {
+          if (items.isEmpty) {
+            return const Center(child: Text('Aucun contenu pour le moment'));
+          }
 
-            // Transmet les informations du contenu à la page de détail.
-            onOpen: () {
-              context.push(
-                '/contents/detail',
-                extra: <String, Object?>{
-                  'title': 'Une promenade au calme',
-                  'date': '16 octobre 2026',
-                  'text':
-                      'Je suis sortie marcher un moment. Ça m’a permis de '
-                      'prendre du recul et de profiter de ce qui m’entourait.',
-                  'isShared': false,
+          // Une carte par contenu de la base.
+          return ListView.separated(
+            physics: const ClampingScrollPhysics(), // pas de rebond
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
+            itemCount: items.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 16),
+            itemBuilder: (context, index) {
+              final content = items[index];
+              final date = _formatDate(content.createdAt);
+
+              return ContentCard(
+                title: content.title,
+                date: date,
+                preview: content.body ?? '',
+                isShared: content.isShared,
+
+                // Transmet les informations du contenu à la page de détail.
+                onOpen: () {
+                  context.push(
+                    '/contents/detail',
+                    extra: <String, Object?>{
+                      'title': content.title,
+                      'date': date,
+                      'text': content.body ?? '',
+                      'isShared': content.isShared,
+                    },
+                  );
                 },
               );
             },
-          ),
-
-          const SizedBox(height: 16),
-
-          ContentCard(
-            title: 'Une photo à partager',
-            date: '15 octobre 2026',
-            imagePath: 'assets/images/TURBOPRUNE-banniere-fb.jpg',
-            isShared: true,
-
-            // Ouvre le détail avec la photo et son statut de partage.
-            onOpen: () {
-              context.push(
-                '/contents/detail',
-                extra: <String, Object?>{
-                  'title': 'Une photo à partager',
-                  'date': '15 octobre 2026',
-                  'imagePath': 'assets/images/TURBOPRUNE-banniere-fb.jpg',
-                  'isShared': true,
-                },
-              );
-            },
-          ),
-
-          const SizedBox(height: 80),
-        ],
+          );
+        },
       ),
 
       floatingActionButton: FloatingActionButton(
@@ -101,4 +96,24 @@ class ContentsPage extends StatelessWidget {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
+}
+
+// Transforme une date en texte français, par exemple « 16 octobre 2026 ».
+String _formatDate(DateTime date) {
+  const months = [
+    'janvier',
+    'février',
+    'mars',
+    'avril',
+    'mai',
+    'juin',
+    'juillet',
+    'août',
+    'septembre',
+    'octobre',
+    'novembre',
+    'décembre',
+  ];
+
+  return '${date.day} ${months[date.month - 1]} ${date.year}';
 }
