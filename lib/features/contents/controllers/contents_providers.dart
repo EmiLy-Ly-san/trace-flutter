@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/storage/app_database.dart';
 import '../../../core/storage/database_provider.dart';
 import '../data/repositories/contents_repository.dart';
 
@@ -10,4 +11,10 @@ final contentsRepositoryProvider = Provider<ContentsRepository>((ref) {
 
   // On crée le guichet en lui donnant la base
   return ContentsRepository(database);
+});
+
+// Donne la liste des contenus aux écrans
+// Elle se met à jour dès qu'un contenu est ajouté
+final contentsProvider = StreamProvider<List<Content>>((ref) {
+  return ref.watch(contentsRepositoryProvider).watchAll();
 });

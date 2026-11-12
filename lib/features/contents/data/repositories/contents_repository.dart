@@ -29,4 +29,13 @@ class ContentsRepository {
   Future<List<Content>> getAll() {
     return _database.select(_database.contents).get();
   }
+
+  // Lit les contenus et prévient à chaque changement de la base
+  // Les plus récents sont en premier
+  Stream<List<Content>> watchAll() {
+    final query = _database.select(_database.contents)
+      ..orderBy([(table) => OrderingTerm.desc(table.createdAt)]);
+
+    return query.watch();
+  }
 }
