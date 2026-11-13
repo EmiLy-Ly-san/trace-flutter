@@ -8,6 +8,7 @@ class ContentCard extends StatelessWidget {
     required this.date,
     this.preview = '',
     this.imagePath,
+    this.isAudio = false,
     this.isShared = false,
     this.onOpen,
     this.onDelete,
@@ -20,6 +21,9 @@ class ContentCard extends StatelessWidget {
   // Chemin d’une image intégrée au projet.
   // Sans image, la carte affiche l’aperçu texte.
   final String? imagePath;
+
+  // Vrai quand le contenu est un vocal.
+  final bool isAudio;
   final bool isShared;
 
   // Actions facultatives, qui seront branchées plus tard.
@@ -92,13 +96,15 @@ class ContentCard extends StatelessWidget {
 
             const SizedBox(height: 12),
 
-            // Icône du format texte et titre du contenu.
+            // Icône du format (photo, vocal ou texte) et titre du contenu.
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
                   imagePath != null
                       ? Icons.image_outlined
+                      : isAudio
+                      ? Icons.mic_none
                       : Icons.edit_outlined,
                   color: primary,
                   size: 24,
@@ -130,8 +136,9 @@ class ContentCard extends StatelessWidget {
               )
             else
               // Aperçu du texte en italique
+              // Un vocal n’a pas de texte, on affiche un libellé à la place
               Text(
-                preview,
+                isAudio ? 'Message vocal' : preview,
                 style: theme.textTheme.bodyLarge?.copyWith(
                   fontStyle: FontStyle.italic,
                 ),

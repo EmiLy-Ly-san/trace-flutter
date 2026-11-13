@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/storage/app_database.dart';
 import '../../controllers/contents_providers.dart';
+import '../../data/local/contents_table.dart';
 import '../widgets/add_content_sheet.dart';
 import '../widgets/content_card.dart';
 
@@ -45,6 +46,7 @@ class ContentsPage extends ConsumerWidget {
                 title: content.title,
                 date: date,
                 preview: content.body ?? '',
+                isAudio: content.type == ContentType.audio,
                 isShared: content.isShared,
 
                 // Demande confirmation avant de supprimer.
