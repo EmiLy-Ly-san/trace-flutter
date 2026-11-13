@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../widgets/add_content_sheet.dart';
+import '../widgets/audio_player_bar.dart';
 
 class ContentDetailPage extends StatelessWidget {
   const ContentDetailPage({
@@ -105,6 +106,9 @@ class ContentDetailPage extends StatelessWidget {
                   fit: BoxFit.contain,
                 ),
               )
+            else if (audioPath != null)
+              // Lecteur pour écouter le vocal enregistré
+              AudioPlayerBar(filePath: audioPath!)
             else
               Text(text, style: theme.textTheme.bodyLarge),
           ],
