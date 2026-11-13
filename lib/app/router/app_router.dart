@@ -42,6 +42,7 @@ final appRouter = GoRouter(
           date: data['date'] as String,
           text: data['text'] as String? ?? '',
           imagePath: data['imagePath'] as String?,
+          audioPath: data['audioPath'] as String?,
           isShared: data['isShared'] as bool? ?? false,
         );
       },

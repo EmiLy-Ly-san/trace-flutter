@@ -60,6 +60,11 @@ class ContentsPage extends ConsumerWidget {
                       'title': content.title,
                       'date': date,
                       'text': content.body ?? '',
+
+                      // Le détail a besoin du fichier pour lire un vocal.
+                      'audioPath': content.type == ContentType.audio
+                          ? content.filePath
+                          : null,
                       'isShared': content.isShared,
                     },
                   );

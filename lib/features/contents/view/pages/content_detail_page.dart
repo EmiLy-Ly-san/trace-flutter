@@ -10,6 +10,7 @@ class ContentDetailPage extends StatelessWidget {
     required this.date,
     this.text = '',
     this.imagePath,
+    this.audioPath,
     this.isShared = false,
   });
 
@@ -18,6 +19,9 @@ class ContentDetailPage extends StatelessWidget {
   final String date;
   final String text;
   final String? imagePath;
+
+  // Chemin du fichier d’un vocal, vide pour les autres contenus
+  final String? audioPath;
   final bool isShared;
 
   @override
@@ -37,6 +41,8 @@ class ContentDetailPage extends StatelessWidget {
                 Icon(
                   imagePath != null
                       ? Icons.image_outlined
+                      : audioPath != null
+                      ? Icons.mic_none
                       : Icons.edit_outlined,
                   color: primary,
                 ),
