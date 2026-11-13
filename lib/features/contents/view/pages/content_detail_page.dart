@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../widgets/add_content_sheet.dart';
+import '../widgets/audio_player_bar.dart';
 
 class ContentDetailPage extends StatelessWidget {
   const ContentDetailPage({
@@ -10,6 +11,7 @@ class ContentDetailPage extends StatelessWidget {
     required this.date,
     this.text = '',
     this.imagePath,
+    this.audioPath,
     this.isShared = false,
   });
 
@@ -18,6 +20,9 @@ class ContentDetailPage extends StatelessWidget {
   final String date;
   final String text;
   final String? imagePath;
+
+  // Chemin du fichier d’un vocal, vide pour les autres contenus
+  final String? audioPath;
   final bool isShared;
 
   @override
@@ -37,6 +42,8 @@ class ContentDetailPage extends StatelessWidget {
                 Icon(
                   imagePath != null
                       ? Icons.image_outlined
+                      : audioPath != null
+                      ? Icons.mic_none
                       : Icons.edit_outlined,
                   color: primary,
                 ),
@@ -99,6 +106,9 @@ class ContentDetailPage extends StatelessWidget {
                   fit: BoxFit.contain,
                 ),
               )
+            else if (audioPath != null)
+              // Lecteur pour écouter le vocal enregistré
+              AudioPlayerBar(filePath: audioPath!)
             else
               Text(text, style: theme.textTheme.bodyLarge),
           ],
