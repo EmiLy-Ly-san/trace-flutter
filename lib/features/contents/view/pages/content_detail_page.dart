@@ -1,15 +1,18 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path/path.dart' as p;
 
+import '../../controllers/contents_providers.dart';
 import '../widgets/add_content_sheet.dart';
 import '../widgets/audio_player_bar.dart';
 
-class ContentDetailPage extends StatelessWidget {
+class ContentDetailPage extends ConsumerStatefulWidget {
   const ContentDetailPage({
     super.key,
+    required this.id,
     required this.title,
     required this.date,
     this.text = '',
@@ -20,6 +23,7 @@ class ContentDetailPage extends StatelessWidget {
   });
 
   // Informations du contenu
+  final int id;
   final String title;
   final String date;
   final String text;
@@ -33,7 +37,39 @@ class ContentDetailPage extends StatelessWidget {
   final bool isShared;
 
   @override
+  ConsumerState<ContentDetailPage> createState() => _ContentDetailPageState();
+}
+
+class _ContentDetailPageState extends ConsumerState<ContentDetailPage> {
+  // Copie locale du partage, pour que l’interrupteur bouge tout de suite
+  late bool _isShared = widget.isShared;
+
+  // Change le partage à l’écran, puis l’enregistre dans la base
+  Future<void> _toggleShared(bool value) async {
+    setState(() => _isShared = value);
+
+    try {
+      await ref
+          .read(contentsRepositoryProvider)
+          .updateShared(id: widget.id, isShared: value);
+    } catch (_) {
+      // Remet l’ancienne valeur si la base n’a pas pu être modifiée
+      if (!mounted) return;
+      setState(() => _isShared = !value);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Impossible de modifier le partage')),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final title = widget.title;
+    final date = widget.date;
+    final text = widget.text;
+    final imagePath = widget.imagePath;
+    final audioPath = widget.audioPath;
+    final documentPath = widget.documentPath;
     final theme = Theme.of(context);
     final primary = theme.colorScheme.primary;
 
@@ -85,7 +121,7 @@ class ContentDetailPage extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            //statut actuel du partage.
+            // Choix du partage, gardé sur ce téléphone pour le moment
             Row(
               children: [
                 Expanded(
@@ -95,12 +131,7 @@ class ContentDetailPage extends StatelessWidget {
                   ),
                 ),
 
-                Switch(
-                  value: isShared,
-
-                  // Désactivé tant que le partage n’est pas activé
-                  onChanged: null,
-                ),
+                Switch(value: _isShared, onChanged: _toggleShared),
               ],
             ),
 
@@ -110,7 +141,7 @@ class ContentDetailPage extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: Image.file(
-                  File(imagePath!),
+                  File(imagePath),
                   width: double.infinity,
                   fit: BoxFit.contain,
 
@@ -123,11 +154,11 @@ class ContentDetailPage extends StatelessWidget {
               )
             else if (audioPath != null)
               // Lecteur pour écouter le vocal enregistré
-              AudioPlayerBar(filePath: audioPath!)
+              AudioPlayerBar(filePath: audioPath)
             else if (documentPath != null)
               // Nom d’origine du fichier, sans le numéro ajouté à l’import
               Text(
-                p.basename(documentPath!).replaceFirst(RegExp(r'^\d+_'), ''),
+                p.basename(documentPath).replaceFirst(RegExp(r'^\d+_'), ''),
                 style: theme.textTheme.bodyLarge,
               )
             else

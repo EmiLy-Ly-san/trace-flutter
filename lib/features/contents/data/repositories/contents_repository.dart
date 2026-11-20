@@ -81,6 +81,13 @@ class ContentsRepository {
         );
   }
 
+  // Marque le contenu comme partagé ou privé avec le thérapeute
+  Future<void> updateShared({required int id, required bool isShared}) async {
+    await (_database.update(_database.contents)
+          ..where((table) => table.id.equals(id)))
+        .write(ContentsCompanion(isShared: Value(isShared)));
+  }
+
   // Supprime le contenu qui a ce numéro (id), et son fichier s'il en a un
   Future<void> deleteById(int id) async {
     // Lit d'abord la ligne pour connaître le chemin de son fichier

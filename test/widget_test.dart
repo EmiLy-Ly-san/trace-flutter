@@ -149,6 +149,44 @@ void main() {
     await closeApp(tester);
   });
 
+  testWidgets('Partage un contenu depuis le détail', (tester) async {
+    await tester.runAsync(() {
+      return ContentsRepository(
+        database,
+      ).addText(title: 'Une promenade au calme', body: 'Je suis sortie.');
+    });
+
+    await startApp(tester);
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await tester.pumpAndSettle();
+
+    // Au départ, le contenu est privé
+    expect(find.text('Privé'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Ouvrir le contenu'));
+    await tester.pumpAndSettle();
+
+    // Active l’interrupteur de partage
+    expect(tester.widget<Switch>(find.byType(Switch)).value, isFalse);
+    await tester.tap(find.byType(Switch));
+    await tester.pumpAndSettle();
+    expect(tester.widget<Switch>(find.byType(Switch)).value, isTrue);
+
+    // Laisse la base enregistrer le changement en temps réel
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    final saved = await tester.runAsync(
+      () => ContentsRepository(database).getAll(),
+    );
+    expect(saved!.single.isShared, isTrue);
+
+    // De retour à l’accueil, la carte affiche « Partagé »
+    await tester.tap(find.text('Retour'));
+    await tester.pumpAndSettle();
+    expect(find.text('Partagé'), findsOneWidget);
+
+    await closeApp(tester);
+  });
+
   testWidgets('Supprime un contenu seulement après confirmation', (
     tester,
   ) async {

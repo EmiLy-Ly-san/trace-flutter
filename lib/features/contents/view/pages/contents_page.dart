@@ -64,6 +64,7 @@ class ContentsPage extends ConsumerWidget {
                   context.push(
                     '/contents/detail',
                     extra: <String, Object?>{
+                      'id': content.id,
                       'title': content.title,
                       'date': date,
                       'text': content.body ?? '',
