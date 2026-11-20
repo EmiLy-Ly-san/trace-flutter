@@ -1,0 +1,34 @@
+name: CI
+
+# Se lance à chaque pull request et à chaque push sur main
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Même version de Flutter que sur nos ordinateurs
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.44.2
+          channel: stable
+          cache: true
+
+      - name: Installer les dépendances
+        run: flutter pub get
+
+      - name: Vérifier le formatage
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Analyser le code
+        run: flutter analyze
+
+      - name: Lancer les tests
+        run: flutter test
