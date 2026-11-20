@@ -148,6 +148,35 @@ void main() {
     await folder.delete(recursive: true);
   });
 
+  test('marque un contenu comme partagé puis privé', () async {
+    await repository.addText(title: 'Premier', body: 'Texte 1');
+    final saved = (await repository.getAll()).single;
+    expect(saved.isShared, isFalse);
+
+    await repository.updateShared(id: saved.id, isShared: true);
+    expect((await repository.getAll()).single.isShared, isTrue);
+
+    await repository.updateShared(id: saved.id, isShared: false);
+    expect((await repository.getAll()).single.isShared, isFalse);
+  });
+
+  test('ne partage que le contenu demandé', () async {
+    await repository.addText(title: 'Premier', body: 'Texte 1');
+    await repository.addText(title: 'Deuxième', body: 'Texte 2');
+    final first = (await repository.getAll()).firstWhere(
+      (content) => content.title == 'Premier',
+    );
+
+    await repository.updateShared(id: first.id, isShared: true);
+
+    final contents = await repository.getAll();
+    final second = contents.firstWhere(
+      (content) => content.title == 'Deuxième',
+    );
+    expect(contents.firstWhere((c) => c.id == first.id).isShared, isTrue);
+    expect(second.isShared, isFalse);
+  });
+
   test('ne supprime rien si le numéro n’existe pas', () async {
     await repository.addText(title: 'Premier', body: 'Texte 1');
 

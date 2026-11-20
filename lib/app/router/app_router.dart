@@ -40,6 +40,7 @@ final appRouter = GoRouter(
         final data = state.extra as Map<String, Object?>;
 
         return ContentDetailPage(
+          id: data['id'] as int,
           title: data['title'] as String,
           date: data['date'] as String,
           text: data['text'] as String? ?? '',

@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:test/core/storage/app_database.dart';
 import 'package:test/core/storage/database_provider.dart';
 import 'package:test/features/contents/data/repositories/contents_repository.dart';
+import 'package:test/features/contents/view/pages/contents_page.dart';
 import 'package:test/main.dart';
 
 void main() {
@@ -37,6 +38,16 @@ void main() {
     // runAsync laisse la base se fermer en temps réel.
     await tester.runAsync(database.close);
   }
+
+  // « Privé » et « Partagé » sont écrits à deux endroits :
+  // dans le filtre en haut, et dans le badge de chaque carte.
+  Finder filter(String label) => find.descendant(
+    of: find.byType(SegmentedButton<ShareFilter>),
+    matching: find.text(label),
+  );
+
+  Finder badge(String label) =>
+      find.descendant(of: find.byType(Card), matching: find.text(label));
 
   testWidgets('Affiche un message quand il n’y a aucun contenu', (
     tester,
@@ -145,6 +156,102 @@ void main() {
     // Revient à l’accueil : le routeur est partagé entre les tests
     await tester.tap(find.text('Retour'));
     await tester.pumpAndSettle();
+
+    await closeApp(tester);
+  });
+
+  testWidgets('Partage un contenu depuis le détail', (tester) async {
+    await tester.runAsync(() {
+      return ContentsRepository(
+        database,
+      ).addText(title: 'Une promenade au calme', body: 'Je suis sortie.');
+    });
+
+    await startApp(tester);
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await tester.pumpAndSettle();
+
+    // Au départ, le badge de la carte indique « Privé »
+    expect(badge('Privé'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Ouvrir le contenu'));
+    await tester.pumpAndSettle();
+
+    // Active l’interrupteur de partage
+    expect(tester.widget<Switch>(find.byType(Switch)).value, isFalse);
+    await tester.tap(find.byType(Switch));
+    await tester.pumpAndSettle();
+    expect(tester.widget<Switch>(find.byType(Switch)).value, isTrue);
+
+    // Laisse la base enregistrer le changement en temps réel
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    final saved = await tester.runAsync(
+      () => ContentsRepository(database).getAll(),
+    );
+    expect(saved!.single.isShared, isTrue);
+
+    // De retour à l’accueil, la carte affiche « Partagé »
+    await tester.tap(find.text('Retour'));
+    await tester.pumpAndSettle();
+    expect(badge('Partagé'), findsOneWidget);
+
+    await closeApp(tester);
+  });
+
+  testWidgets('Filtre les contenus entre tout, privé et partagé', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      final repository = ContentsRepository(database);
+      await repository.addText(title: 'Pour moi', body: 'Privé');
+      await repository.addText(title: 'Pour ma psy', body: 'Partagé');
+      final shared = (await repository.getAll()).firstWhere(
+        (content) => content.title == 'Pour ma psy',
+      );
+      await repository.updateShared(id: shared.id, isShared: true);
+    });
+
+    await startApp(tester);
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await tester.pumpAndSettle();
+
+    // Par défaut, « Tout » montre les deux contenus
+    expect(find.text('Pour moi'), findsOneWidget);
+    expect(find.text('Pour ma psy'), findsOneWidget);
+
+    await tester.tap(filter('Partagé'));
+    await tester.pumpAndSettle();
+    expect(find.text('Pour moi'), findsNothing);
+    expect(find.text('Pour ma psy'), findsOneWidget);
+
+    await tester.tap(filter('Privé'));
+    await tester.pumpAndSettle();
+    expect(find.text('Pour moi'), findsOneWidget);
+    expect(find.text('Pour ma psy'), findsNothing);
+
+    await tester.tap(filter('Tout'));
+    await tester.pumpAndSettle();
+    expect(find.byType(Card), findsNWidgets(2));
+
+    await closeApp(tester);
+  });
+
+  testWidgets('Indique quand aucun contenu n’est partagé', (tester) async {
+    await tester.runAsync(() {
+      return ContentsRepository(
+        database,
+      ).addText(title: 'Pour moi', body: 'Privé');
+    });
+
+    await startApp(tester);
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await tester.pumpAndSettle();
+
+    await tester.tap(filter('Partagé'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Pour moi'), findsNothing);
+    expect(find.text('Aucun contenu partagé'), findsOneWidget);
 
     await closeApp(tester);
   });
