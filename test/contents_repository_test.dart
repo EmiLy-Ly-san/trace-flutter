@@ -82,6 +82,39 @@ void main() {
     expect(await repository.getAll(), isEmpty);
   });
 
+  test('enregistre une photo avec le chemin de son fichier', () async {
+    await repository.addPhoto(
+      title: 'Ma photo',
+      filePath: '/chemin/vers/photo.jpg',
+    );
+
+    final contents = await repository.getAll();
+
+    expect(contents, hasLength(1));
+    expect(contents.first.title, 'Ma photo');
+    expect(contents.first.type, ContentType.photo);
+    expect(contents.first.filePath, '/chemin/vers/photo.jpg');
+    expect(contents.first.body, isNull);
+  });
+
+  test('supprime aussi le fichier d’une photo', () async {
+    // Crée un vrai fichier temporaire pour le test
+    final folder = await Directory.systemTemp.createTemp('photo_test');
+    final file = File('${folder.path}/photo.jpg');
+    await file.writeAsString('fausse photo');
+
+    await repository.addPhoto(title: 'Ma photo', filePath: file.path);
+    final saved = (await repository.getAll()).single;
+
+    await repository.deleteById(saved.id);
+
+    // La ligne et le fichier ont disparu
+    expect(await repository.getAll(), isEmpty);
+    expect(await file.exists(), isFalse);
+
+    await folder.delete(recursive: true);
+  });
+
   test('ne supprime rien si le numéro n’existe pas', () async {
     await repository.addText(title: 'Premier', body: 'Texte 1');
 
