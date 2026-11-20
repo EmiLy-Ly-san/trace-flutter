@@ -115,6 +115,39 @@ void main() {
     await folder.delete(recursive: true);
   });
 
+  test('enregistre un fichier importé avec son chemin', () async {
+    await repository.addFile(
+      title: 'Mon bilan',
+      filePath: '/chemin/vers/123_bilan.pdf',
+    );
+
+    final contents = await repository.getAll();
+
+    expect(contents, hasLength(1));
+    expect(contents.first.title, 'Mon bilan');
+    expect(contents.first.type, ContentType.file);
+    expect(contents.first.filePath, '/chemin/vers/123_bilan.pdf');
+    expect(contents.first.body, isNull);
+  });
+
+  test('supprime aussi la copie d’un fichier importé', () async {
+    // Crée un vrai fichier temporaire pour le test
+    final folder = await Directory.systemTemp.createTemp('file_test');
+    final file = File('${folder.path}/123_bilan.pdf');
+    await file.writeAsString('faux document');
+
+    await repository.addFile(title: 'Mon bilan', filePath: file.path);
+    final saved = (await repository.getAll()).single;
+
+    await repository.deleteById(saved.id);
+
+    // La ligne et le fichier ont disparu
+    expect(await repository.getAll(), isEmpty);
+    expect(await file.exists(), isFalse);
+
+    await folder.delete(recursive: true);
+  });
+
   test('ne supprime rien si le numéro n’existe pas', () async {
     await repository.addText(title: 'Premier', body: 'Texte 1');
 

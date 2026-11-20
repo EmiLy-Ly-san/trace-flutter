@@ -63,6 +63,24 @@ class ContentsRepository {
         );
   }
 
+  // Range un nouveau fichier importé (PDF, document...) dans la base
+  // filePath est l'endroit où la copie du fichier est gardée sur le téléphone
+  Future<void> addFile({
+    required String title,
+    required String filePath,
+  }) async {
+    await _database
+        .into(_database.contents)
+        .insert(
+          ContentsCompanion.insert(
+            title: title,
+            type: ContentType.file,
+            createdAt: DateTime.now(),
+            filePath: Value(filePath),
+          ),
+        );
+  }
+
   // Supprime le contenu qui a ce numéro (id), et son fichier s'il en a un
   Future<void> deleteById(int id) async {
     // Lit d'abord la ligne pour connaître le chemin de son fichier
