@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import '../../../../app/theme/app_colors.dart';
 
@@ -18,8 +20,8 @@ class ContentCard extends StatelessWidget {
   final String title;
   final String date;
   final String preview;
-  // Chemin d’une image intégrée au projet.
-  // Sans image, la carte affiche l’aperçu texte.
+  // Chemin d’une photo enregistrée sur le téléphone.
+  // Sans photo, la carte affiche l’aperçu texte.
   final String? imagePath;
 
   // Vrai quand le contenu est un vocal.
@@ -131,7 +133,16 @@ class ContentCard extends StatelessWidget {
                 child: AspectRatio(
                   // Format paysage, comme dans la maquette
                   aspectRatio: 4 / 3,
-                  child: Image.asset(imagePath!, fit: BoxFit.cover),
+                  child: Image.file(
+                    File(imagePath!),
+                    fit: BoxFit.cover,
+
+                    // Si le fichier a disparu, affiche une icône à la place
+                    errorBuilder: (context, error, stackTrace) => const Icon(
+                      Icons.broken_image_outlined,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ),
               )
             else

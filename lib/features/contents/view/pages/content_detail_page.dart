@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -100,10 +102,16 @@ class ContentDetailPage extends StatelessWidget {
             if (imagePath != null)
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.asset(
-                  imagePath!,
+                child: Image.file(
+                  File(imagePath!),
                   width: double.infinity,
                   fit: BoxFit.contain,
+
+                  // Si le fichier a disparu, affiche un message à la place
+                  errorBuilder: (context, error, stackTrace) => Text(
+                    'Photo introuvable sur ce téléphone',
+                    style: theme.textTheme.bodyLarge,
+                  ),
                 ),
               )
             else if (audioPath != null)
