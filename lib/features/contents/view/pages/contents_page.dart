@@ -8,13 +8,25 @@ import '../../data/local/contents_table.dart';
 import '../widgets/add_content_sheet.dart';
 import '../widgets/content_card.dart';
 
+// Les trois choix du filtre en haut de la liste
+enum ShareFilter { all, private, shared }
+
 // Écran principal des contenus du patient.
-// ConsumerWidget : un écran qui peut écouter Riverpod.
-class ContentsPage extends ConsumerWidget {
+// ConsumerStatefulWidget : un écran qui écoute Riverpod
+// et garde aussi son propre état (le filtre choisi).
+class ContentsPage extends ConsumerStatefulWidget {
   const ContentsPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ContentsPage> createState() => _ContentsPageState();
+}
+
+class _ContentsPageState extends ConsumerState<ContentsPage> {
+  // Au lancement, on montre tous les contenus
+  ShareFilter _filter = ShareFilter.all;
+
+  @override
+  Widget build(BuildContext context) {
     // On écoute la liste : l'écran se redessine à chaque changement.
     final contents = ref.watch(contentsProvider);
 
@@ -27,64 +39,62 @@ class ContentsPage extends ConsumerWidget {
       body: contents.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => const Center(child: Text('Erreur de lecture')),
-        data: (items) {
-          if (items.isEmpty) {
+        data: (allItems) {
+          if (allItems.isEmpty) {
             return const Center(child: Text('Aucun contenu pour le moment'));
           }
 
-          // Une carte par contenu de la base.
-          return ListView.separated(
-            physics: const ClampingScrollPhysics(), // pas de rebond
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
-            itemCount: items.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 16),
-            itemBuilder: (context, index) {
-              final content = items[index];
-              final date = _formatDate(content.createdAt);
+          // Garde seulement les contenus qui correspondent au filtre
+          final items = switch (_filter) {
+            ShareFilter.all => allItems,
+            ShareFilter.private =>
+              allItems.where((content) => !content.isShared).toList(),
+            ShareFilter.shared =>
+              allItems.where((content) => content.isShared).toList(),
+          };
 
-              // Chemin de la photo, vide pour les autres contenus
-              final imagePath = content.type == ContentType.photo
-                  ? content.filePath
-                  : null;
-
-              return ContentCard(
-                title: content.title,
-                date: date,
-                preview: content.body ?? '',
-                imagePath: imagePath,
-                isAudio: content.type == ContentType.audio,
-                isFile: content.type == ContentType.file,
-                isShared: content.isShared,
-
-                // Demande confirmation avant de supprimer.
-                onDelete: () => _confirmDelete(context, ref, content),
-
-                // Transmet les informations du contenu à la page de détail.
-                onOpen: () {
-                  context.push(
-                    '/contents/detail',
-                    extra: <String, Object?>{
-                      'id': content.id,
-                      'title': content.title,
-                      'date': date,
-                      'text': content.body ?? '',
-                      'imagePath': imagePath,
-
-                      // Le détail a besoin du fichier pour lire un vocal.
-                      'audioPath': content.type == ContentType.audio
-                          ? content.filePath
-                          : null,
-
-                      // Le détail affiche le nom d’un fichier importé.
-                      'documentPath': content.type == ContentType.file
-                          ? content.filePath
-                          : null,
-                      'isShared': content.isShared,
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: SegmentedButton<ShareFilter>(
+                    segments: const [
+                      ButtonSegment(
+                        value: ShareFilter.all,
+                        label: Text('Tout'),
+                      ),
+                      ButtonSegment(
+                        value: ShareFilter.private,
+                        label: Text('Privé'),
+                      ),
+                      ButtonSegment(
+                        value: ShareFilter.shared,
+                        label: Text('Partagé'),
+                      ),
+                    ],
+                    selected: {_filter},
+                    showSelectedIcon: false,
+                    onSelectionChanged: (selection) {
+                      setState(() => _filter = selection.first);
                     },
-                  );
-                },
-              );
-            },
+                  ),
+                ),
+              ),
+
+              Expanded(
+                child: items.isEmpty
+                    ? Center(
+                        child: Text(
+                          _filter == ShareFilter.shared
+                              ? 'Aucun contenu partagé'
+                              : 'Aucun contenu privé',
+                        ),
+                      )
+                    : _buildList(items),
+              ),
+            ],
           );
         },
       ),
@@ -119,6 +129,63 @@ class ContentsPage extends ConsumerWidget {
 
       // Place le bouton en bas au centre de la page.
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+    );
+  }
+
+  // Une carte par contenu de la liste.
+  Widget _buildList(List<Content> items) {
+    return ListView.separated(
+      physics: const ClampingScrollPhysics(), // pas de rebond
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
+      itemCount: items.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 16),
+      itemBuilder: (context, index) {
+        final content = items[index];
+        final date = _formatDate(content.createdAt);
+
+        // Chemin de la photo, vide pour les autres contenus
+        final imagePath = content.type == ContentType.photo
+            ? content.filePath
+            : null;
+
+        return ContentCard(
+          title: content.title,
+          date: date,
+          preview: content.body ?? '',
+          imagePath: imagePath,
+          isAudio: content.type == ContentType.audio,
+          isFile: content.type == ContentType.file,
+          isShared: content.isShared,
+
+          // Demande confirmation avant de supprimer.
+          onDelete: () => _confirmDelete(context, ref, content),
+
+          // Transmet les informations du contenu à la page de détail.
+          onOpen: () {
+            context.push(
+              '/contents/detail',
+              extra: <String, Object?>{
+                'id': content.id,
+                'title': content.title,
+                'date': date,
+                'text': content.body ?? '',
+                'imagePath': imagePath,
+
+                // Le détail a besoin du fichier pour lire un vocal.
+                'audioPath': content.type == ContentType.audio
+                    ? content.filePath
+                    : null,
+
+                // Le détail affiche le nom d’un fichier importé.
+                'documentPath': content.type == ContentType.file
+                    ? content.filePath
+                    : null,
+                'isShared': content.isShared,
+              },
+            );
+          },
+        );
+      },
     );
   }
 }
