@@ -53,6 +53,7 @@ class ContentsPage extends ConsumerWidget {
                 preview: content.body ?? '',
                 imagePath: imagePath,
                 isAudio: content.type == ContentType.audio,
+                isFile: content.type == ContentType.file,
                 isShared: content.isShared,
 
                 // Demande confirmation avant de supprimer.
@@ -70,6 +71,11 @@ class ContentsPage extends ConsumerWidget {
 
                       // Le détail a besoin du fichier pour lire un vocal.
                       'audioPath': content.type == ContentType.audio
+                          ? content.filePath
+                          : null,
+
+                      // Le détail affiche le nom d’un fichier importé.
+                      'documentPath': content.type == ContentType.file
                           ? content.filePath
                           : null,
                       'isShared': content.isShared,
