@@ -1,6 +1,9 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+
+import '../../data/file_import_rules.dart';
 
 // Panneau proposant les différents formats de contenu
 class AddContentSheet extends StatelessWidget {
@@ -135,8 +138,52 @@ class AddContentSheet extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.attach_file),
               title: const Text('Importer un fichier'),
-              onTap: () {
-                Navigator.pop(context);
+              onTap: () async {
+                try {
+                  // Ouvre le sélecteur, limité aux formats de documents acceptés
+                  final file = await FilePicker.pickFile(
+                    type: FileType.custom,
+                    allowedExtensions: allowedFileExtensions,
+                  );
+
+                  // Arrête si le panneau a été fermé pendant l’attente
+                  if (!context.mounted) return;
+
+                  // Si l’utilisateur annule, conserve le panneau sans naviguer
+                  if (file == null) return;
+
+                  // Vérifie le format et la taille, car certains téléphones
+                  // ignorent le filtre du sélecteur
+                  final size = file.lengthSync() ?? await file.length();
+                  final error = checkImportedFile(name: file.name, size: size);
+
+                  if (!context.mounted) return;
+
+                  if (error != null) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(error)));
+                    return;
+                  }
+
+                  // Récupère le routeur avant de fermer le panneau
+                  final router = GoRouter.of(context);
+
+                  // Ferme le panneau de choix des formats
+                  Navigator.pop(context);
+
+                  // Ouvre l’écran de confirmation avec le fichier choisi
+                  router.push('/contents/add-file', extra: file);
+                } catch (error) {
+                  if (!context.mounted) return;
+
+                  // Informe l’utilisateur si le fichier ne peut pas être récupéré
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Impossible de récupérer le fichier'),
+                    ),
+                  );
+                }
               },
             ),
           ],

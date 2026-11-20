@@ -11,6 +11,7 @@ class ContentCard extends StatelessWidget {
     this.preview = '',
     this.imagePath,
     this.isAudio = false,
+    this.isFile = false,
     this.isShared = false,
     this.onOpen,
     this.onDelete,
@@ -26,6 +27,9 @@ class ContentCard extends StatelessWidget {
 
   // Vrai quand le contenu est un vocal.
   final bool isAudio;
+
+  // Vrai quand le contenu est un fichier importé.
+  final bool isFile;
   final bool isShared;
 
   // Actions facultatives, qui seront branchées plus tard.
@@ -107,6 +111,8 @@ class ContentCard extends StatelessWidget {
                       ? Icons.image_outlined
                       : isAudio
                       ? Icons.mic_none
+                      : isFile
+                      ? Icons.insert_drive_file_outlined
                       : Icons.edit_outlined,
                   color: primary,
                   size: 24,
@@ -147,9 +153,13 @@ class ContentCard extends StatelessWidget {
               )
             else
               // Aperçu du texte en italique
-              // Un vocal n’a pas de texte, on affiche un libellé à la place
+              // Un vocal ou un fichier n’a pas de texte, on affiche un libellé à la place
               Text(
-                isAudio ? 'Message vocal' : preview,
+                isAudio
+                    ? 'Message vocal'
+                    : isFile
+                    ? 'Fichier joint'
+                    : preview,
                 style: theme.textTheme.bodyLarge?.copyWith(
                   fontStyle: FontStyle.italic,
                 ),

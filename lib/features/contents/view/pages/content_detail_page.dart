@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path/path.dart' as p;
 
 import '../widgets/add_content_sheet.dart';
 import '../widgets/audio_player_bar.dart';
@@ -14,6 +15,7 @@ class ContentDetailPage extends StatelessWidget {
     this.text = '',
     this.imagePath,
     this.audioPath,
+    this.documentPath,
     this.isShared = false,
   });
 
@@ -25,6 +27,9 @@ class ContentDetailPage extends StatelessWidget {
 
   // Chemin du fichier d’un vocal, vide pour les autres contenus
   final String? audioPath;
+
+  // Chemin d’un fichier importé, vide pour les autres contenus
+  final String? documentPath;
   final bool isShared;
 
   @override
@@ -46,6 +51,8 @@ class ContentDetailPage extends StatelessWidget {
                       ? Icons.image_outlined
                       : audioPath != null
                       ? Icons.mic_none
+                      : documentPath != null
+                      ? Icons.insert_drive_file_outlined
                       : Icons.edit_outlined,
                   color: primary,
                 ),
@@ -117,6 +124,12 @@ class ContentDetailPage extends StatelessWidget {
             else if (audioPath != null)
               // Lecteur pour écouter le vocal enregistré
               AudioPlayerBar(filePath: audioPath!)
+            else if (documentPath != null)
+              // Nom d’origine du fichier, sans le numéro ajouté à l’import
+              Text(
+                p.basename(documentPath!).replaceFirst(RegExp(r'^\d+_'), ''),
+                style: theme.textTheme.bodyLarge,
+              )
             else
               Text(text, style: theme.textTheme.bodyLarge),
           ],

@@ -118,6 +118,37 @@ void main() {
     await closeApp(tester);
   });
 
+  testWidgets('Affiche un fichier importé et son nom dans le détail', (
+    tester,
+  ) async {
+    await tester.runAsync(() {
+      return ContentsRepository(
+        database,
+      ).addFile(title: 'Mon bilan', filePath: '/chemin/files/123_bilan.pdf');
+    });
+
+    await startApp(tester);
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await tester.pumpAndSettle();
+
+    // La carte montre le titre, l’icône et un libellé à la place du texte
+    expect(find.text('Mon bilan'), findsOneWidget);
+    expect(find.text('Fichier joint'), findsOneWidget);
+    expect(find.byIcon(Icons.insert_drive_file_outlined), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Ouvrir le contenu'));
+    await tester.pumpAndSettle();
+
+    // Le détail affiche le nom d’origine, sans le numéro ajouté à l’import
+    expect(find.text('bilan.pdf'), findsOneWidget);
+
+    // Revient à l’accueil : le routeur est partagé entre les tests
+    await tester.tap(find.text('Retour'));
+    await tester.pumpAndSettle();
+
+    await closeApp(tester);
+  });
+
   testWidgets('Supprime un contenu seulement après confirmation', (
     tester,
   ) async {

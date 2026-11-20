@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -6,6 +7,7 @@ import '../../features/contents/view/pages/contents_page.dart';
 import '../../features/contents/view/pages/content_detail_page.dart';
 import '../../features/contents/view/pages/add_photo_page.dart';
 import '../../features/contents/view/pages/add_audio_page.dart';
+import '../../features/contents/view/pages/add_file_page.dart';
 
 // Centralise les routes de l’application.
 final appRouter = GoRouter(
@@ -43,6 +45,7 @@ final appRouter = GoRouter(
           text: data['text'] as String? ?? '',
           imagePath: data['imagePath'] as String?,
           audioPath: data['audioPath'] as String?,
+          documentPath: data['documentPath'] as String?,
           isShared: data['isShared'] as bool? ?? false,
         );
       },
@@ -70,6 +73,25 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/contents/add-audio',
       builder: (context, state) => const AddAudioPage(),
+    ),
+    GoRoute(
+      path: '/contents/add-file',
+
+      // Revient au dashboard si aucun fichier n’a été transmis
+      redirect: (context, state) {
+        if (state.extra is! PlatformFile) {
+          return '/';
+        }
+
+        return null;
+      },
+
+      builder: (context, state) {
+        // Récupère le fichier transmis lors de la navigation
+        final file = state.extra as PlatformFile;
+
+        return AddFilePage(file: file);
+      },
     ),
   ],
 );
