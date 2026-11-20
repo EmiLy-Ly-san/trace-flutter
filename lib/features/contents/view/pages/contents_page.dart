@@ -42,10 +42,16 @@ class ContentsPage extends ConsumerWidget {
               final content = items[index];
               final date = _formatDate(content.createdAt);
 
+              // Chemin de la photo, vide pour les autres contenus
+              final imagePath = content.type == ContentType.photo
+                  ? content.filePath
+                  : null;
+
               return ContentCard(
                 title: content.title,
                 date: date,
                 preview: content.body ?? '',
+                imagePath: imagePath,
                 isAudio: content.type == ContentType.audio,
                 isShared: content.isShared,
 
@@ -60,6 +66,7 @@ class ContentsPage extends ConsumerWidget {
                       'title': content.title,
                       'date': date,
                       'text': content.body ?? '',
+                      'imagePath': imagePath,
 
                       // Le détail a besoin du fichier pour lire un vocal.
                       'audioPath': content.type == ContentType.audio

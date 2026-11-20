@@ -69,6 +69,55 @@ void main() {
     await closeApp(tester);
   });
 
+  testWidgets('Affiche une photo enregistrée dans la base', (tester) async {
+    await tester.runAsync(() {
+      return ContentsRepository(
+        database,
+      ).addPhoto(title: 'Le parc', filePath: '/chemin/vers/photo.jpg');
+    });
+
+    await startApp(tester);
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Le parc'), findsOneWidget);
+
+    // La carte lit la photo depuis le fichier du téléphone
+    final image = tester.widget<Image>(find.byType(Image));
+    expect(image.image, isA<FileImage>());
+    expect((image.image as FileImage).file.path, '/chemin/vers/photo.jpg');
+
+    await closeApp(tester);
+  });
+
+  testWidgets('Ouvre le détail d’une photo', (tester) async {
+    await tester.runAsync(() {
+      return ContentsRepository(
+        database,
+      ).addPhoto(title: 'Le parc', filePath: '/chemin/vers/photo.jpg');
+    });
+
+    await startApp(tester);
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Ouvrir le contenu'));
+    await tester.pumpAndSettle();
+
+    // La page de détail affiche le titre et la même photo
+    expect(find.text('Retour'), findsOneWidget);
+    expect(find.text('Le parc'), findsOneWidget);
+    final image = tester.widget<Image>(find.byType(Image));
+    expect((image.image as FileImage).file.path, '/chemin/vers/photo.jpg');
+
+    // Revient à l’accueil : le routeur est partagé entre les tests
+    await tester.tap(find.text('Retour'));
+    await tester.pumpAndSettle();
+    expect(find.text('Mes contenus'), findsOneWidget);
+
+    await closeApp(tester);
+  });
+
   testWidgets('Supprime un contenu seulement après confirmation', (
     tester,
   ) async {
