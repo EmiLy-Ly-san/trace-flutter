@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/storage/app_database.dart';
-import '../../../core/storage/database_provider.dart';
+import '../../core/storage/app_database.dart';
+import '../../core/storage/database_provider.dart';
 import '../data/repositories/contents_repository.dart';
 
 // Donne accès au guichet des contenus depuis n'importe quel écran

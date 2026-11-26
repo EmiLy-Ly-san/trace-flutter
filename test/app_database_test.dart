@@ -2,7 +2,7 @@ import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:test/core/storage/app_database.dart';
-import 'package:test/features/contents/data/local/contents_table.dart';
+import 'package:test/contents/data/local/contents_table.dart';
 
 void main() {
   // Base créée avant chaque test, puis fermée après
