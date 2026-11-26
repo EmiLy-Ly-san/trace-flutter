@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:test/features/contents/data/file_import_rules.dart';
+import 'package:test/contents/data/file_import_rules.dart';
 
 void main() {
   test('accepte un PDF de taille raisonnable', () {

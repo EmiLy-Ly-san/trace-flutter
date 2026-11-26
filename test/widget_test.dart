@@ -5,8 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:test/core/storage/app_database.dart';
 import 'package:test/core/storage/database_provider.dart';
-import 'package:test/features/contents/data/repositories/contents_repository.dart';
-import 'package:test/features/contents/view/pages/contents_page.dart';
+import 'package:test/contents/data/repositories/contents_repository.dart';
+import 'package:test/contents/view/pages/contents_page.dart';
 import 'package:test/main.dart';
 
 void main() {

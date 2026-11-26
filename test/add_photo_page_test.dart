@@ -6,8 +6,8 @@ import 'package:image_picker/image_picker.dart';
 
 import 'package:test/core/storage/app_database.dart';
 import 'package:test/core/storage/database_provider.dart';
-import 'package:test/features/contents/data/repositories/contents_repository.dart';
-import 'package:test/features/contents/view/pages/add_photo_page.dart';
+import 'package:test/contents/data/repositories/contents_repository.dart';
+import 'package:test/contents/view/pages/add_photo_page.dart';
 
 void main() {
   // Base temporaire en mémoire, pour ne pas toucher au vrai fichier

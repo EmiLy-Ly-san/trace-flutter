@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:test/core/storage/app_database.dart';
-import 'package:test/features/contents/data/local/contents_table.dart';
-import 'package:test/features/contents/data/repositories/contents_repository.dart';
+import 'package:test/contents/data/local/contents_table.dart';
+import 'package:test/contents/data/repositories/contents_repository.dart';
 
 void main() {
   late AppDatabase database;

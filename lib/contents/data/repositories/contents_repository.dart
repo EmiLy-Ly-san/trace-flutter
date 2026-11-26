@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:drift/drift.dart';
 
-import '../../../../core/storage/app_database.dart';
+import '../../../core/storage/app_database.dart';
 import '../local/contents_table.dart';
 
 // Le guichet des contenus : les écrans passeront par lui

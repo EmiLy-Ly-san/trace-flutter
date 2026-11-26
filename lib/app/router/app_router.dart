@@ -2,12 +2,12 @@ import 'package:file_picker/file_picker.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../features/contents/view/pages/add_text_page.dart';
-import '../../features/contents/view/pages/contents_page.dart';
-import '../../features/contents/view/pages/content_detail_page.dart';
-import '../../features/contents/view/pages/add_photo_page.dart';
-import '../../features/contents/view/pages/add_audio_page.dart';
-import '../../features/contents/view/pages/add_file_page.dart';
+import '../../contents/view/pages/add_text_page.dart';
+import '../../contents/view/pages/contents_page.dart';
+import '../../contents/view/pages/content_detail_page.dart';
+import '../../contents/view/pages/add_photo_page.dart';
+import '../../contents/view/pages/add_audio_page.dart';
+import '../../contents/view/pages/add_file_page.dart';
 
 // Centralise les routes de l’application.
 final appRouter = GoRouter(

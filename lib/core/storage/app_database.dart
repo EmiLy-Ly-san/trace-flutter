@@ -9,7 +9,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 // Importe notre table Contents pour pouvoir la déclarer dans la base
-import '../../features/contents/data/local/contents_table.dart';
+import '../../contents/data/local/contents_table.dart';
 
 part 'app_database.g.dart';
 
